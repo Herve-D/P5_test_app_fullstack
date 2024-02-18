@@ -4,42 +4,111 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SessionService } from 'src/app/services/session.service';
+import { expect } from '@jest/globals';
 
 import { MeComponent } from './me.component';
+import { UserService } from 'src/app/services/user.service';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { User } from 'src/app/interfaces/user.interface';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('MeComponent', () => {
   let component: MeComponent;
   let fixture: ComponentFixture<MeComponent>;
+  let sessionService: SessionService;
+  let userService: UserService;
+  let mockRouter: Router;
+  let mockMatSnackbar: MatSnackBar;
+  let controller: HttpTestingController;
 
-  const mockSessionService = {
-    sessionInformation: {
-      admin: true,
-      id: 1
-    }
+  const pathService: string = 'api/user';
+
+  const mockUser: User = {
+    id: 1,
+    email: 'mail@mail.com',
+    lastName: 'last',
+    firstName: 'first',
+    admin: true,
+    password: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
+
+  const mockSessionInformation: SessionInformation = {
+    token: 'token',
+    type: 'type',
+    id: mockUser.id,
+    username: mockUser.email,
+    firstName: mockUser.firstName,
+    lastName: mockUser.lastName,
+    admin: mockUser.admin,
+  }
+
+  mockRouter = {
+    navigate: jest.fn(),
+  } as unknown as jest.Mocked<Router>;
+
+  mockMatSnackbar = {
+    open: jest.fn(),
+  } as unknown as jest.Mocked<MatSnackBar>;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [MeComponent],
       imports: [
+        RouterTestingModule,
         MatSnackBarModule,
-        HttpClientModule,
+        HttpClientTestingModule,
         MatCardModule,
         MatFormFieldModule,
         MatIconModule,
         MatInputModule
       ],
-      providers: [{ provide: SessionService, useValue: mockSessionService }],
+      providers: [
+        SessionService,
+        UserService,
+        { provide: MatSnackBar, useValue: mockMatSnackbar },
+        { provide: Router, useValue: mockRouter },
+      ],
     })
       .compileComponents();
 
     fixture = TestBed.createComponent(MeComponent);
     component = fixture.componentInstance;
+    sessionService = TestBed.inject(SessionService);
+    sessionService.logIn(mockSessionInformation);
+    userService = TestBed.inject(UserService);
+    mockRouter = TestBed.inject(Router);
+    mockMatSnackbar = TestBed.inject(MatSnackBar);
+    controller = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should delete user', () => {
+    expect(sessionService.isLogged).toBeTruthy();
+    const deleteSpy = jest.spyOn(userService, 'delete');
+    const logoutSpy = jest.spyOn(sessionService, 'logOut');
+    component.delete();
+
+    fixture.whenStable().then(() => {
+      const requests = controller.match(pathService + '/1');
+      expect(requests.length).toBe(2);
+      requests[0].flush(mockUser);
+      requests[1].flush('user deleted');
+
+      expect(deleteSpy).toHaveBeenCalledTimes(1);
+      expect(logoutSpy).toHaveBeenCalledTimes(1);
+      expect(component.user).toBe(mockUser);
+      expect(sessionService.isLogged).toBeFalsy();
+    })
+  })
+
 });

@@ -24,4 +24,51 @@ describe('Login spec', () => {
 
     cy.url().should('include', '/sessions')
   })
+
+  it('Login failed', () => {
+    cy.visit('/login')
+
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 401,
+      body: {
+        message: 'Unauthorized'
+      },
+    })
+
+    cy.get('input[formControlName=email]').type("inconnu@gmail.com")
+    cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
+    cy.get('.error').should('contain', 'An error occurred');
+  })
+
+  it('Bad email', () => {
+    cy.visit('/login')
+
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 401,
+      body: {
+        message: 'Unauthorized'
+      },
+    })
+
+    cy.get('input[formControlName=email]').type("inconnugmail")
+    cy.get('input[formControlName=password]').type(`${"test!1234"}{enter}{enter}`)
+    cy.get('.mat-form-field-invalid').should('exist');
+    cy.get('.error').should('contain', 'An error occurred');
+  })
+
+  it('Empty password', () => {
+    cy.visit('/login')
+
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 401,
+      body: {
+        message: 'Unauthorized'
+      },
+    })
+
+    cy.get('input[formControlName=email]').type("paul.oui@gmail")
+    cy.get('input[formControlName=password]').type(`${""}{enter}{enter}`)
+    cy.get('.mat-form-field-invalid').should('exist');
+    cy.get('.error').should('contain', 'An error occurred');
+  })
 });

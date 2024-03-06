@@ -19,6 +19,20 @@ Cloner le dépôt :
 
 > git clone [https://github.com/OpenClassrooms-Student-Center/P5-Full-Stack-testing](https://github.com/Herve-D/P5_test_app_fullstack.git)
 
+### MySQL
+
+Le script SQL script est disponible ici : `ressources/sql/script.sql`
+
+Le compte admin par défaut :
+- login: yoga@studio.com
+- password: test!1234
+
+Ajustez si nécessaire à vos informations de base de données dans `application.properties` :
+```
+spring.datasource.username=xxxx
+spring.datasource.password=xxxx
+```
+
 ### Installation des dépendances :
 
 Pour la partie back-end :
@@ -42,20 +56,6 @@ Pour la partie front-end :
 > npm run start
 
 Le frontend sera accessible à l'adresse [localhost:4200](http://localhost:4200)
-
-### MySQL
-
-Le script SQL script est disponible ici : `ressources/sql/script.sql`
-
-Le compte admin par défaut :
-- login: yoga@studio.com
-- password: test!1234
-
-Ajustez si nécessaire à vos informations de base de données dans `application.properties` :
-```
-spring.datasource.username=xxxx
-spring.datasource.password=xxxx
-```
 
 ## Effectuer les tests
 
